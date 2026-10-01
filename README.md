@@ -31,9 +31,6 @@ solutions/
   05-lazy-streams.rkt
   06-playlist-generator.rkt
 
-quiz/
-  quiz.rkt
-  solution.rkt
 ```
 
 Cada archivo de `workshop/` contiene la solución de la etapa anterior y deja una nueva función por implementar. Cada archivo puede ejecutarse de manera independiente.
@@ -86,12 +83,3 @@ Durante el taller no se utiliza:
 
 El procesamiento se realiza mediante composición de funciones y transformación de datos.
 
-## Quiz
-
-El quiz parte de la aplicación terminada y agrega una nueva función `recommend-playlists` que debe:
-
-- conservar las condiciones existentes de una playlist válida;
-- evitar artistas repetidos;
-- exigir una popularidad promedio mínima recibida por parámetro;
-- operar directamente sobre un `Streamof Playlist`;
-- retornar solo las primeras `N` playlists que cumplen las condiciones.
