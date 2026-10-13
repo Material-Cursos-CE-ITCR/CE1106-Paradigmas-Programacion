@@ -7,6 +7,7 @@ Coordenadas de 1 a 5, las mismas que en el taller de Prolog.
 
 import sys
 
+VERSION = "2.0"
 SIZE = 5
 PIECES = {
     "single": ((0, 0),),
@@ -18,6 +19,8 @@ PIECES = {
     "t4": ((0, 0), (0, 1), (0, 2), (1, 1)),
     "z4": ((0, 0), (0, 1), (1, 1), (1, 2)),
 }
+DISPLAY_ORDER = ("t4", "z4", "single", "horizontal2", "vertical2",
+                 "square2", "corner3", "horizontal3")
 NAMES = {
     "single": "Una celda", "horizontal2": "Domino horizontal",
     "vertical2": "Domino vertical", "square2": "Cuadrado 2 x 2",
@@ -98,9 +101,11 @@ class App:
         self.game = Game()
         self.selected = "horizontal2"
         self.hover = None
-        root.title("Block Blast | Taller de Prolog")
-        root.geometry("1040x900")
-        root.minsize(1000, 860)
+        root.title(f"Block Blast v{VERSION} | 8 piezas, T y Z")
+        width = min(1020, root.winfo_screenwidth() - 60)
+        height = min(740, root.winfo_screenheight() - 80)
+        root.geometry(f"{width}x{height}")
+        root.minsize(min(940, width), min(600, height))
         root.configure(bg="#f3f5f9")
         style = ttk.Style(root)
         if "clam" in style.theme_names():
@@ -110,7 +115,7 @@ class App:
         style.configure("TButton", font=("Arial", 10), padding=7)
         container = ttk.Frame(root, padding=20)
         container.pack(fill="both", expand=True)
-        ttk.Label(container, text="Block Blast", font=("Arial", 24, "bold")).pack(anchor="w")
+        ttk.Label(container, text=f"Block Blast v{VERSION} — 8 piezas", font=("Arial", 24, "bold")).pack(anchor="w")
         ttk.Label(container, text="Seleccione una pieza y haga clic en su origen. Coordenadas de 1 a 5.").pack(anchor="w", pady=(4, 14))
 
         toolbar = ttk.Frame(container)
@@ -129,13 +134,28 @@ class App:
         side = self.MARGIN * 2 + SIZE * self.CELL
         self.canvas = tk.Canvas(body, width=side, height=side, bg="white", highlightthickness=0)
         self.canvas.pack(side="left", anchor="n")
-        panel = ttk.Frame(body, padding=(20, 0, 0, 0))
-        panel.pack(side="left", fill="both", expand=True)
-        ttk.Label(panel, text="Catalogo de piezas", font=("Arial", 14, "bold")).pack(anchor="w")
+        right = ttk.Frame(body, padding=(20, 0, 0, 0))
+        right.pack(side="left", fill="both", expand=True)
+        self.catalog_canvas = tk.Canvas(right, bg="#f3f5f9", highlightthickness=0)
+        scrollbar = ttk.Scrollbar(right, orient="vertical",
+                                  command=self.catalog_canvas.yview)
+        scrollbar.pack(side="right", fill="y")
+        self.catalog_canvas.pack(side="left", fill="both", expand=True)
+        self.catalog_canvas.configure(yscrollcommand=scrollbar.set)
+        panel = ttk.Frame(self.catalog_canvas)
+        panel_window = self.catalog_canvas.create_window((0, 0), window=panel, anchor="nw")
+        panel.bind("<Configure>", lambda event: self.catalog_canvas.configure(
+            scrollregion=self.catalog_canvas.bbox("all")))
+        self.catalog_canvas.bind("<Configure>", lambda event:
+                                 self.catalog_canvas.itemconfigure(panel_window, width=event.width))
+        root.bind("<MouseWheel>", self.scroll_catalog)
+        root.bind("<Button-4>", self.scroll_catalog)
+        root.bind("<Button-5>", self.scroll_catalog)
+        ttk.Label(panel, text="Catalogo: 8 piezas (T y Z primero)", font=("Arial", 14, "bold")).pack(anchor="w")
         grid = ttk.Frame(panel)
         grid.pack(anchor="w", pady=8)
         self.buttons = {}
-        for i, name in enumerate(PIECES):
+        for i, name in enumerate(DISPLAY_ORDER):
             card = tk.Frame(grid, bg="white", bd=1, relief="solid")
             card.grid(row=i // 3, column=i % 3, padx=(0, 8), pady=(0, 8), sticky="nsew")
             icon = tk.Canvas(card, width=105, height=48, bg="white", highlightthickness=0)
@@ -171,8 +191,24 @@ class App:
         self.canvas.bind("<Leave>", self.leave)
         self.canvas.bind("<Button-1>", self.click)
         root.bind("<Control-z>", lambda event: self.undo())
-        root.bind("<Command-z>", lambda event: self.undo())
+        if sys.platform == "darwin":
+            root.bind("<Command-z>", lambda event: self.undo())
         self.refresh()
+
+    def scroll_catalog(self, event):
+        canvas = self.catalog_canvas
+        left, top = canvas.winfo_rootx(), canvas.winfo_rooty()
+        if not (left <= event.x_root < left + canvas.winfo_width()
+                and top <= event.y_root < top + canvas.winfo_height()):
+            return
+        if getattr(event, "num", None) == 4:
+            steps = -1
+        elif getattr(event, "num", None) == 5:
+            steps = 1
+        else:
+            delta = getattr(event, "delta", 0)
+            steps = (-1 if delta > 0 else 1) if delta else 0
+        canvas.yview_scroll(steps, "units")
 
     def origin_at(self, event):
         col = (event.x - self.MARGIN) // self.CELL + 1
@@ -268,6 +304,8 @@ class App:
 
 
 def self_test():
+    assert DISPLAY_ORDER[:2] == ("t4", "z4")
+    assert set(DISPLAY_ORDER) == set(PIECES) and len(DISPLAY_ORDER) == 8
     game = Game("Vacio")
     assert len(game.origins("horizontal2")) == 20
     assert len(game.origins("t4")) == 12
