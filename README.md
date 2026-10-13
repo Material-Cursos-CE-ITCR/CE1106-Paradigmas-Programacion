@@ -1,4 +1,10 @@
 # CE1106 - Paradigmas de Programación
+
+## Talleres disponibles
+
+- **Programación funcional:** taller incremental de playlists en Racket, descrito a continuación.
+- **Programación lógica:** [asistente de jugadas de Block Blast en Prolog](prolog/block-blast/README.md), con una demostración visual en Python/Tkinter.
+
 ## Functional Playlist Workshop
 
 Taller incremental de programación funcional en Racket y Typed Racket.
