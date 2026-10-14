@@ -41,7 +41,9 @@ El corte `!` descarta las alternativas creadas desde la entrada al predicado act
 
 ## Preparación
 
-Abra https://onecompiler.com/prolog, reemplace el programa de ejemplo por el contenido de `block_blast_base.pl` y pulse **Run**. El archivo incluye `:- initialization(main).`: el objetivo `main` se ejecuta al iniciar el programa.
+Abra https://onecompiler.com/prolog, reemplace el programa de ejemplo por el contenido de `block_blast_base.pl` y pulse **Run**. El archivo incluye `:- initialization(main).` al comienzo: el objetivo `main` se ejecuta al iniciar el programa. Conserve la directiva y copie el archivo completo.
+
+El `main` inicial llama a `demo_main`: imprime un tablero de ejemplo y el catálogo de ocho piezas sin ejecutar ningún `TODO`. Debe terminar correctamente incluso antes de completar los ejercicios. Para probar los predicados pendientes, sustituya únicamente `main :- demo_main.` por `main :- test_student_code.`. Esta prueba imprime el fallo de cada objetivo sin hacer fallar la inicialización.
 
 Para probar una consulta, escriba sus objetivos dentro de `main`; no pegue `?-` como parte del código. Los auxiliares proporcionados permiten imprimir resultados:
 
@@ -57,8 +59,11 @@ Reemplace el `main` existente al cambiar el ejemplo; no agregue otro. Las variab
 
 - `run_query(Template,Goal)` imprime una lista con todas las respuestas del objetivo. Si no existen, imprime `[]`.
 - `check_goal(Label,Goal)` imprime `success` o `failure` para una condición. Comprueba existencia de solución, sin enumerarlas.
-- `demo` muestra un tablero.
-- Los seis predicados pendientes contienen `fail` como marcador. Mientras no los complete, sus pruebas pueden fallar intencionalmente.
+- `demo_main` muestra el tablero inicial y las ocho piezas, sin llamar a los ejercicios pendientes.
+- `test_student_code` ejecuta consultas de los ejercicios usando `check_goal/2` y `run_query/2`.
+- `demo` muestra otro tablero de ejemplo.
+- `writeln/1` se define como auxiliar de compatibilidad mediante `write/1` y `nl/0`.
+- Los seis predicados pendientes contienen `fail` como marcador. Mientras no los complete, las pruebas muestran `failure` o listas vacías. Esto es esperado; el `main` de demostración funciona independientemente.
 
 ## Reglas del modelo
 
@@ -142,7 +147,7 @@ Compruebe que el tablero vacío imprime 136 jugadas y que el lleno no imprime ju
 
 ## Comprobación
 
-Estas pruebas se ejecutan dentro de `main`, separadas por comas:
+Estas pruebas se ejecutan dentro de `main`, separadas por comas. Conserve la directiva `initialization(main)` del inicio del archivo. Para evitar que un objetivo fallido interrumpa el programa, ejecute comprobaciones mediante `check_goal/2` y enumere respuestas con `run_query/2`.
 
 ```prolog
 main :-
