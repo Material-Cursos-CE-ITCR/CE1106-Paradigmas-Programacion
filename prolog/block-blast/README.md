@@ -16,10 +16,12 @@ Relaciones vs. funciones; hechos y consultas; cálculo de predicados; dominios, 
 
 1. Abra [OneCompiler Prolog](https://onecompiler.com/prolog).
 2. Pegue el contenido de `block_blast_base.pl` y pulse **Run**.
-3. Complete los predicados según la guía. Los `TODO` fallan intencionalmente hasta implementarlos.
+3. El `main` inicial muestra un tablero y las ocho piezas sin llamar a los ejercicios pendientes. Complete los predicados según la guía. Los `TODO` fallan intencionalmente hasta implementarlos.
 4. Modifique el objetivo `main` para ejecutar las consultas. Mantenga una sola directiva `:- initialization(main).` y una sola definición de `main`.
 
-La impresión utiliza `write/1` seguido de `nl/0`. `run_query/2` imprime todas las respuestas y `check_goal/2` comprueba éxito o fallo.
+Para probar los ejercicios, sustituya solamente `main :- demo_main.` por `main :- test_student_code.`. Mantenga la directiva `initialization(main)` al inicio del archivo. Las consultas fallidas se muestran como `failure` o `[]`, sin hacer fallar la inicialización.
+
+La impresión utiliza `write/1` seguido de `nl/0`. También se proporciona un auxiliar `writeln/1` para compatibilidad con ejemplos anteriores. `run_query/2` imprime todas las respuestas y `check_goal/2` comprueba éxito o fallo.
 
 ## Ejecutar la demostración visual
 
