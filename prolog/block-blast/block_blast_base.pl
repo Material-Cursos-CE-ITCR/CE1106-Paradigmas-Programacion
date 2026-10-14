@@ -4,6 +4,9 @@
 % Los TODO fallan intencionalmente mientras estan pendientes.
 % Coordenadas de 1 a 5. Offsets desde 0. Sin rotaciones.
 
+% Mantenga esta directiva al copiar TODO el archivo en OneCompiler.
+:- initialization(main).
+
 board_size(5).
 
 piece(single, [cell(0,0)]).
@@ -90,8 +93,36 @@ check_goal(Label,Goal) :-
     (call(Goal) -> Status=success ; Status=failure),
     format('~w: ~w~n',[Label,Status]).
 
-:- initialization(main).
+% Compatibilidad para ejemplos que utilicen writeln/1.
+writeln(Term) :-
+    write(Term), nl.
+
+% MAIN DE DEMOSTRACION: no llama a ningun TODO.
+% Funciona desde el inicio, aunque los seis ejercicios esten pendientes.
 main :-
-    demo,
-    run_query(piece(Name,Cells),piece(Name,Cells)),
-    check_goal(bounds_example,inside_board(cell(5,5))).
+    demo_main.
+
+demo_main :-
+    write('VERSION ESTUDIANTES - MAIN DE DEMOSTRACION'), nl, nl,
+    Board = [cell(1,1),cell(1,2),cell(3,4)],
+    write('TABLERO: # ocupado, . libre'), nl,
+    print_board(Board), nl,
+    write('CATALOGO DE OCHO PIEZAS (incluye T y Z)'), nl,
+    run_query(piece(Name,Cells),piece(Name,Cells)), nl,
+    check_goal(bounds_example,inside_board(cell(5,5))),
+    write('Complete los seis TODO. Para probarlos ejecute test_student_code.'), nl.
+
+% PRUEBAS DE LOS ESTUDIANTES.
+% Cuando quiera probar, sustituya SOLO la llamada de main:
+% main :- test_student_code.
+% check_goal captura el fallo: un TODO pendiente no hace fallar main.
+test_student_code :-
+    board(empty,Board),
+    check_goal(free_cell_example,free_cell(Board,cell(1,1))),
+    check_goal(empty_list,all_free(Board,[])),
+    check_goal(fits_example,fits(Board,t4,cell(1,1),_)),
+    write('Jugadas obtenidas: '),
+    run_query(move(Name,Origin),legal_move(Board,Name,Origin)),
+    write('Primera jugada: '),
+    run_query(Move,first_move(Board,Move)),
+    check_goal(show_moves_example,show_moves(Board)).
