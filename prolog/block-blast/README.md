@@ -47,6 +47,18 @@ Para comprobar la lógica sin abrir una ventana:
 python prolog/block-blast/block_blast_tkinter.py --self-test
 ```
 
+### Cargar un tablero desde Prolog
+
+Pulse **Cargar tablero de Prolog**, pegue el hecho completo y pulse **Cargar tablero**. Puede usar **Pegar del portapapeles** o pegar directamente en el campo de texto.
+
+```prolog
+board(demo_board, [cell(1,1),cell(2,3),cell(5,5)]).
+```
+
+Se acepta el mismo formato de **Copiar tablero para Prolog**, con espacios y saltos de línea, un nombre de tablero como `demo_board` y el punto final. Para vaciarlo, use `board(empty, []).`
+
+Las coordenadas deben ser enteros entre 1 y 5 y no pueden repetirse. Una entrada inválida muestra un mensaje y conserva el tablero actual. La carga actualiza las jugadas y las líneas completas; puede revertirse con **Deshacer**.
+
 ## Modelo compartido
 
 Ambos programas utilizan coordenadas de 1 a 5 y el mismo catálogo de ocho piezas, sin rotaciones ni reflejos:

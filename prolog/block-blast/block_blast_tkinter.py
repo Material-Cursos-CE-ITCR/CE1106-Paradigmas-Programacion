@@ -5,9 +5,10 @@ Pruebe la logica sin abrir ventanas: python block_blast_tkinter.py --self-test
 Coordenadas de 1 a 5, las mismas que en el taller de Prolog.
 """
 
+import re
 import sys
 
-VERSION = "2.0"
+VERSION = "2.1"
 SIZE = 5
 PIECES = {
     "single": ((0, 0),),
@@ -35,6 +36,27 @@ PRESETS = {
 }
 
 
+def parse_prolog_board(text):
+    match = re.fullmatch(
+        r"\s*board\s*\(\s*[a-z][A-Za-z0-9_]*\s*,\s*\[(.*?)\]\s*\)\s*\.\s*",
+        text, re.DOTALL
+    )
+    if not match:
+        raise ValueError("Use board(nombre, [cell(1,1),cell(2,3)]).")
+    body = match.group(1).strip()
+    if not body:
+        return set()
+    cell_pattern = r"cell\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)"
+    if not re.fullmatch(cell_pattern + r"(?:\s*,\s*" + cell_pattern + r")*", body):
+        raise ValueError("La lista debe contener solamente celdas: cell(fila,columna).")
+    cells = [(int(r), int(c)) for r, c in re.findall(cell_pattern, body)]
+    if any(not (1 <= r <= SIZE and 1 <= c <= SIZE) for r, c in cells):
+        raise ValueError(f"Las filas y columnas deben estar entre 1 y {SIZE}.")
+    if len(set(cells)) != len(cells):
+        raise ValueError("El tablero contiene celdas repetidas.")
+    return set(cells)
+
+
 class Game:
     def __init__(self, preset="Casi completo"):
         self.reset(preset)
@@ -42,6 +64,11 @@ class Game:
     def reset(self, preset):
         self.board = set(PRESETS[preset])
         self.history = []
+
+    def load_prolog(self, text):
+        board = parse_prolog_board(text)
+        self.history.append(set(self.board))
+        self.board = board
 
     def cells(self, name, origin):
         r, c = origin
@@ -127,7 +154,12 @@ class App:
         ttk.Button(toolbar, text="Cargar / reiniciar", command=self.reset).pack(side="left", padx=8)
         self.undo_button = ttk.Button(toolbar, text="Deshacer", command=self.undo)
         self.undo_button.pack(side="left")
-        ttk.Button(toolbar, text="Copiar tablero para Prolog", command=self.copy_prolog).pack(side="right")
+        transfer = ttk.Frame(container)
+        transfer.pack(fill="x", pady=(0, 12))
+        ttk.Button(transfer, text="Cargar tablero de Prolog",
+                   command=self.import_prolog).pack(side="left")
+        ttk.Button(transfer, text="Copiar tablero para Prolog",
+                   command=self.copy_prolog).pack(side="left", padx=8)
 
         body = ttk.Frame(container)
         body.pack(fill="both", expand=True)
@@ -259,6 +291,50 @@ class App:
         self.root.clipboard_append(self.game.prolog())
         self.message.set("Copiado: board(demo_board, [...]). Pegue el hecho en su programa Prolog.")
 
+    def import_prolog(self):
+        from tkinter import messagebox
+
+        dialog = self.tk.Toplevel(self.root)
+        dialog.title("Cargar tablero de Prolog")
+        dialog.transient(self.root)
+        dialog.resizable(True, True)
+        frame = self.ttk.Frame(dialog, padding=16)
+        frame.pack(fill="both", expand=True)
+        self.ttk.Label(frame, text="Pegue un tablero con el mismo formato que se copia:").pack(anchor="w")
+        self.ttk.Label(frame, text="board(demo_board, [cell(1,1),cell(2,3)]).").pack(anchor="w", pady=(4, 8))
+        text = self.tk.Text(frame, width=65, height=7, wrap="word")
+        text.pack(fill="both", expand=True)
+
+        def paste():
+            try:
+                content = dialog.clipboard_get()
+            except self.tk.TclError:
+                messagebox.showerror("No se pudo pegar",
+                                     "El portapapeles no contiene texto.", parent=dialog)
+                return
+            text.delete("1.0", "end")
+            text.insert("1.0", content)
+
+        def load():
+            try:
+                self.game.load_prolog(text.get("1.0", "end-1c"))
+            except ValueError as error:
+                messagebox.showerror("Tablero invalido", str(error), parent=dialog)
+                return
+            self.hover = None
+            self.message.set(f"Tablero cargado: {len(self.game.board)} celdas ocupadas. Puede deshacer la carga.")
+            self.refresh()
+            dialog.destroy()
+
+        actions = self.ttk.Frame(frame)
+        actions.pack(fill="x", pady=(12, 0))
+        self.ttk.Button(actions, text="Pegar del portapapeles", command=paste).pack(side="left")
+        self.ttk.Button(actions, text="Cargar tablero", command=load).pack(side="right")
+        self.ttk.Button(actions, text="Cancelar", command=dialog.destroy).pack(side="right", padx=8)
+        dialog.bind("<Escape>", lambda event: dialog.destroy())
+        dialog.grab_set()
+        text.focus_set()
+
     def refresh(self):
         origins = self.game.origins(self.selected)
         total = sum(len(self.game.origins(name)) for name in PIECES)
@@ -337,7 +413,37 @@ def self_test():
     assert game.lines() == ([1, 2, 3, 4, 5], [1, 2, 3, 4, 5])
     assert game.clear_lines() and not game.board
     assert not game.clear_lines()
-    print("OK: jugadas, limites, superposicion, lineas, deshacer y exportacion Prolog.")
+    for preset in PRESETS:
+        game.reset(preset)
+        exported = game.prolog()
+        assert parse_prolog_board(exported) == game.board
+        game.load_prolog(exported)
+        assert game.prolog() == exported
+    assert parse_prolog_board(" board ( custom_board , [\n cell ( 1 , 2 ), cell(5,5)\n] ) . ") == {(1, 2), (5, 5)}
+    assert parse_prolog_board("board(empty, [ ]).") == set()
+    game.reset("Centro ocupado")
+    game.load_prolog("board(example, [cell(1,1),cell(2,3)]).")
+    assert game.board == {(1, 1), (2, 3)}
+    assert game.undo() and game.board == {(3, 3)}
+    for invalid in (
+        "", "board(x, [cell(0,1)]).", "board(x, [cell(6,1)]).",
+        "board(x, [cell(1,-1)]).", "board(x, [cell(1,6)]).",
+        "board(x, [cell(1,1),cell(1,1)]).",
+        "board(x, [cell(1,1),]).", "board(x, [cell(1,1) cell(2,2)]).",
+        "board(x, [cell(1.5,1)]).", "board(x, [cell(R,1)]).",
+        "board(x, [cell(1,1),other(2,2)]).",
+        "board(x, []). board(y, []).", "board(x, []). trailing",
+        "board(x, Cells) :- goal."
+    ):
+        before, history = set(game.board), list(game.history)
+        try:
+            game.load_prolog(invalid)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"Se acepto un tablero invalido: {invalid}")
+        assert game.board == before and game.history == history
+    print("OK: jugadas, limites, lineas, deshacer y carga/exportacion Prolog.")
 
 
 def main():
