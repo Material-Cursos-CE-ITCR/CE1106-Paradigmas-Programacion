@@ -5,7 +5,8 @@ Taller de **2 horas y 15 minutos**, en parejas, para completar seis predicados q
 ## Archivos
 
 - [Guia_Taller_Prolog.md](Guia_Taller_Prolog.md): temas, explicaciones, actividades y consultas de comprobación.
-- [block_blast_base.pl](block_blast_base.pl): programa base con seis `TODO` por completar.
+- [block_blast_base.pl](block_blast_base.pl): programa base con seis `TODO`, un main explícito y pruebas por entregable.
+- [block_blast_solucion.pl](block_blast_solucion.pl): solución docente completa con las mismas pruebas.
 - [block_blast_tkinter.py](block_blast_tkinter.py): demostración visual interactiva para mostrar las jugadas.
 
 ## Temas
@@ -16,12 +17,15 @@ Relaciones vs. funciones; hechos y consultas; cálculo de predicados; dominios, 
 
 1. Abra [OneCompiler Prolog](https://onecompiler.com/prolog).
 2. Pegue el contenido de `block_blast_base.pl` y pulse **Run**.
-3. El `main` inicial muestra un tablero y las ocho piezas sin llamar a los ejercicios pendientes. Complete los predicados según la guía. Los `TODO` fallan intencionalmente hasta implementarlos.
-4. Modifique el objetivo `main` para ejecutar las consultas. Mantenga una sola directiva `:- initialization(main).` y una sola definición de `main`.
+3. El `main` ejecuta los seis grupos de pruebas. Complete los TODO en orden; las pruebas pendientes pueden mostrar FALLO.
+4. Para probar un único entregable, reemplace el cuerpo de `main`, por ejemplo: `main :- test_free_cell.`. Conserve una sola definición de `main` y la directiva de inicialización.
+5. Para ejecutar la referencia completa, copie `block_blast_solucion.pl` en lugar del archivo base.
 
-Para probar los ejercicios, sustituya solamente `main :- demo_main.` por `main :- test_student_code.`. Mantenga la directiva `initialization(main)` al inicio del archivo. Las consultas fallidas se muestran como `failure` o `[]`, sin hacer fallar la inicialización.
+Las pruebas muestran `OK`, `FALLO` o `error(...)` y continúan después de un fallo. Algunas pruebas de rechazo pueden mostrar OK aunque el TODO todavía falle siempre. Los ejercicios posteriores dependen de los anteriores.
 
-La impresión utiliza `write/1` seguido de `nl/0`. También se proporciona un auxiliar `writeln/1` para compatibilidad con ejemplos anteriores. `run_query/2` imprime todas las respuestas y `check_goal/2` comprueba éxito o fallo.
+En `show_moves/1`, revise también las jugadas impresas: el test automático comprueba terminación y una sola solución, pero no captura la salida. El uso del corte y del bucle dirigido por fallo se revisa en el código.
+
+Se conservan `run_query/2`, `check_goal/2` y `writeln/1` para las consultas de la guía. Resultados esperados: **136** jugadas en vacío, **113** con el centro ocupado y **0** en un tablero lleno.
 
 ## Ejecutar la demostración visual
 

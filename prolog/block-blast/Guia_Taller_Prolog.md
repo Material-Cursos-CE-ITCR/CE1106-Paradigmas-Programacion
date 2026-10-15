@@ -41,29 +41,30 @@ El corte `!` descarta las alternativas creadas desde la entrada al predicado act
 
 ## Preparación
 
-Abra https://onecompiler.com/prolog, reemplace el programa de ejemplo por el contenido de `block_blast_base.pl` y pulse **Run**. El archivo incluye `:- initialization(main).` al comienzo: el objetivo `main` se ejecuta al iniciar el programa. Conserve la directiva y copie el archivo completo.
+Abra https://onecompiler.com/prolog, copie el archivo completo `block_blast_base.pl` y pulse **Run**. Conserve `:- initialization(main).` y una sola definición de `main`.
 
-El `main` inicial llama a `demo_main`: imprime un tablero de ejemplo y el catálogo de ocho piezas sin ejecutar ningún `TODO`. Debe terminar correctamente incluso antes de completar los ejercicios. Para probar los predicados pendientes, sustituya únicamente `main :- demo_main.` por `main :- test_student_code.`. Esta prueba imprime el fallo de cada objetivo sin hacer fallar la inicialización.
-
-Para probar una consulta, escriba sus objetivos dentro de `main`; no pegue `?-` como parte del código. Los auxiliares proporcionados permiten imprimir resultados:
+El `main` ejecuta explícitamente los seis grupos de pruebas:
 
 ```prolog
 main :-
-    demo,
-    run_query(piece(Name,Cells), piece(Name,Cells)),
-    check_goal(unification, cell(R,C) = cell(2,4)),
-    run_query(cell(R,C), cell(R,C) = cell(2,4)).
+    write('PRUEBAS DEL TALLER BLOCK BLAST'), nl,
+    write('Un TODO pendiente puede provocar fallos posteriores.'), nl,
+    test_free_cell,
+    test_all_free,
+    test_fits,
+    test_legal_move,
+    test_first_move,
+    test_show_moves,
+    nl, write('FIN DE LAS PRUEBAS'), nl.
 ```
 
-Reemplace el `main` existente al cambiar el ejemplo; no agregue otro. Las variables de una misma cláusula comparten sus enlaces. Para ensayar casos independientes, utilice nombres de variables distintos o ejecuciones separadas.
+Para ejecutar un solo entregable, reemplace temporalmente el cuerpo de `main`, por ejemplo: `main :- test_fits.`. También puede comentar las llamadas que desee omitir, conservando el punto final de la cláusula.
 
-- `run_query(Template,Goal)` imprime una lista con todas las respuestas del objetivo. Si no existen, imprime `[]`.
-- `check_goal(Label,Goal)` imprime `success` o `failure` para una condición. Comprueba existencia de solución, sin enumerarlas.
-- `demo_main` muestra el tablero inicial y las ocho piezas, sin llamar a los ejercicios pendientes.
-- `test_student_code` ejecuta consultas de los ejercicios usando `check_goal/2` y `run_query/2`.
-- `demo` muestra otro tablero de ejemplo.
-- `writeln/1` se define como auxiliar de compatibilidad mediante `write/1` y `nl/0`.
-- Los seis predicados pendientes contienen `fail` como marcador. Mientras no los complete, las pruebas muestran `failure` o listas vacías. Esto es esperado; el `main` de demostración funciona independientemente.
+Cada prueba imprime `OK`, `FALLO` o `error(...)`. Un fallo o error capturado no impide continuar con las demás pruebas. Los TODO pendientes generan fallos esperados; algunas pruebas de rechazo pueden mostrar OK aunque el predicado todavía falle siempre.
+
+Los ejercicios dependen de los anteriores. Complete y pruebe cada uno en orden. En `show_moves/1`, revise también las jugadas impresas: las pruebas automáticas comprueban la terminación con éxito y una sola solución, pero no capturan el texto. Revise en el código el uso del corte, la recursión y el bucle dirigido por fallo.
+
+No pegue `?-` dentro del archivo. Para consultas adicionales desde `main`, están disponibles `run_query(Template,Goal)`, que imprime todas las respuestas, y `check_goal(Label,Goal)`, que muestra success o failure. Se conserva `writeln/1` como auxiliar de compatibilidad con OneCompiler.
 
 ## Reglas del modelo
 
@@ -147,21 +148,13 @@ Compruebe que el tablero vacío imprime 136 jugadas y que el lleno no imprime ju
 
 ## Comprobación
 
-Estas pruebas se ejecutan dentro de `main`, separadas por comas. Conserve la directiva `initialization(main)` del inicio del archivo. Para evitar que un objetivo fallido interrumpa el programa, ejecute comprobaciones mediante `check_goal/2` y enumere respuestas con `run_query/2`.
+Ejecute el archivo completo. La solución debe mostrar OK en las 47 pruebas. Los conteos esperados son 136 jugadas en el tablero vacío, 113 con el centro ocupado y 0 en el tablero lleno.
 
-```prolog
-main :-
-    check_goal(empty_list, all_free([],[])),
-    board(center,Center),
-    check_goal(overlap, fits(Center,square2,cell(2,2),_)),
-    board(empty,Empty),
-    all_moves(Empty,Moves), length(Moves,Count), write(Count), nl,
-    run_query(Move, first_move(Empty,Move)),
-    board(full,Full),
-    run_query(Result, all_moves(Full,Result)).
-```
+`first_move/2` debe devolver una sola respuesta: `move(single,cell(1,1))` en el tablero vacío y `move(single,cell(1,4))` en `almost`, respetando el catálogo y el generador proporcionados.
 
-Resultados esperados: `empty_list: success`, `overlap: failure`, `136`, `[move(single,cell(1,1))]` y `[[]]`. La última salida contiene una lista vacía como respuesta: `all_moves/2` tiene éxito y devuelve `[]` aunque no haya jugadas.
+Para `show_moves/1`, compruebe visualmente los tres casos: ninguna jugada en el tablero lleno, únicamente `move(single,cell(5,5))` cuando esa es la única celda libre, y 136 jugadas sin repetir en el tablero vacío.
+
+La referencia completa está en [block_blast_solucion.pl](block_blast_solucion.pl), con el mismo main y las mismas pruebas. Para realizar el taller, trabaje en el archivo base.
 
 ## Referencias técnicas
 
