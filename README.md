@@ -1,5 +1,9 @@
 # CE1106 - Paradigmas de Programación
 
+## Temas disponibles
+
+- **Programación orientada a objetos:** [patrones de diseño en C#](poo/patrones-diseno/README.md), con presentación conceptual de 32 diapositivas, ejercicios y proyecto de ejemplos independientes.
+
 ## Talleres disponibles
 
 - **Programación funcional:** taller incremental de playlists en Racket, descrito a continuación.
